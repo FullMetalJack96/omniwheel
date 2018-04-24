@@ -1,0 +1,8 @@
+# ninja log v5
+0	32	0	CMakeFiles/printvars	f585bab4fdc312f
+0	24	0	CMakeFiles/printvars	f585bab4fdc312f
+0	17	0	CMakeFiles/printvars	f585bab4fdc312f
+0	563	1524610113	CMakeFiles/myproject.elf.dir/main.cpp.o	1170ba94ebd5922a
+564	819	1524610113	myproject.elf	6c22539781c975ee
+819	846	0	CMakeFiles/myproject.hex	7979e924040e561f
+1	19	0	CMakeFiles/myproject.hex	7979e924040e561f

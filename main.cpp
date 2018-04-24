@@ -1,5 +1,6 @@
 #include "hFramework.h"
 using namespace hFramework;
+
 void hMain()
 {
 	hExt1.serial.init(9600, Parity::None, StopBits::One);

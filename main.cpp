@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <DistanceSensor.h>
+#include <string>
 
 using namespace hModules;
 
@@ -25,33 +26,21 @@ enum Direction
 
 void relativeMove(int positionX, int positionY)
 {
-	if (positionX > 0)
+	if (positionX > 0 && obstacleRight)
 	{
-		if (obstacleRight == true)
-		{
 			positionX = 0;
-		}
 	}
-	if (positionX < 0)
+	if (positionX < 0 && obstacleLeft)
 	{
-		if (obstacleLeft == true)
-		{
 			positionX = 0;
-		}
 	}
-	if (positionY > 0)
+	if (positionY > 0 && obstacleFront)
 	{
-		if (obstacleFront == true)
-		{
 			positionY = 0;
-		}
 	}
-	if (positionY < 0)
+	if (positionY < 0 && obstacleBack)
 	{
-		if (obstacleBack == true)
-		{
 			positionY = 0;
-		}
 	}
 
 	hMot1.setPower(positionY);
@@ -60,169 +49,102 @@ void relativeMove(int positionX, int positionY)
 	hMot3.setPower(positionX);
 	hMot4.setPower(-positionX);
 }
-void testMotors()
-{
-	for (;;)
-	{
-		// int time = sys.getRefTime();
-		// float pos = sinf(time / 3000.0f * 2 * M_PI);
-		// hMot3.rotAbs(pos * 90.0f, 300, true); // robAbs with true as 'block' parameter blocks execution until motor reaches desired position
-		hMot1.setPower(1000);
-		hMot2.setPower(1000);
-		hMot3.setPower(1000);
-		hMot4.setPower(1000);
-	}
-}
 
-void getDistanceAndDetectObstacle()
+void getDistanceAndDetectObstacleTask()
 {
 	DistanceSensor sensorFront(hSens1.getBaseSens());
 	DistanceSensor sensorBack(hSens5.getBaseSens());
 	DistanceSensor sensorLeft(hSens4.getBaseSens());
 	DistanceSensor sensorRight(hSens2.getBaseSens());
-
+	
 	while (1)
 	{
-
+		hLED1.off();
 		int frontDist = sensorFront.getDistance();
 		int backDist = sensorBack.getDistance();
 		int leftDist = sensorLeft.getDistance();
 		int rightDist = sensorRight.getDistance();
+		
+
+		// Serial.printf("%d\n",frontDist);
+		// Serial.printf("%d\n",rightDist);
+		// Serial.printf("%d\n",backDist);
+		// Serial.printf("%d\n",leftDist);
+		// hExt1.serial.printf("%d %d %d %d\n",frontDist,rightDist,backDist,leftDist);
+
 
 		if (leftDist <= 10 && leftDist >= 0)
 		{
-			if (leftDist == -1)
-			{
-				Serial.printf("LEFT SENSOR FAILURE!\r\n");
-			}
+			
 			Serial.printf("OBSTACLE DETECTED: LEFT!\r\n");
 			obstacleLeft = true;
 			hLED1.on();
 		}
-		else if (rightDist <= 10)
+		if (rightDist <= 10 && rightDist >= 0)
 		{
-			if (rightDist == -1)
-			{
-				Serial.printf("RIGHT SENSOR FAILURE!\r\n");
-			}
 			Serial.printf("OBSTACLE DETECTED: RIGHT!\r\n");
 			obstacleRight = true;
 			hLED1.on();
 		}
-		else if (frontDist <= 10)
+		if (frontDist <= 10 && frontDist >= 0)
 		{
-			if (frontDist == -1)
-			{
-				Serial.printf("FRONT SENSOR FAILURE!\r\n");
-			}
 			Serial.printf("OBSTACLE DETECTED: FRONT!\r\n");
 			obstacleFront = true;
 			hLED1.on();
 		}
-		else if (backDist <= 10)
+		if (backDist <= 10 && backDist >= 0)
 		{
-			if (backDist == -1)
-			{
-				Serial.printf("BACK SENSOR FAILURE!\r\n");
-			}
 			Serial.printf("OBSTACLE DETECTED: BACK!\r\n");
 			obstacleBack = true;
 			hLED1.on();
 		}
-		else
-		{
-			hLED1.off();
 			obstacleLeft = false;
 			obstacleBack = false;
 			obstacleFront = false;
 			obstacleRight = false;
-		}
-
-		// Serial.printf("Front: %d\r\n", frontDist);
-		// Serial.printf("Back: %d\r\n", backDist);
-		// Serial.printf("Left: %d\r\n", leftDist);
-		// Serial.printf("Right: %d\r\n", rightDist);
-
-		sys.delay(100);
 	}
 }
 
-void absoluteMove(Direction direction, int speed)
-{
-
-	switch (direction)
-	{
-	case left:
-
-		break;
-	case right:
-
-		break;
-	case forward:
-
-		break;
-	case backward:
-
-		break;
-	case fRight:
-
-		break;
-	case fLeft:
-
-		break;
-	case rRight:
-
-		break;
-	case rLeft:
-
-		break;
-	}
+void switchElectromagnet(){
+	printf("electromagnet toggled!\r\n");
 }
-int bluetoothReceiveCommand()
+
+int bluetoothReceiveCommandTask()
 {
 	char received_data[20];
-	if (hExt1.serial.available() > 0)
-	{
-		if (hExt1.serial.read(received_data, sizeof(received_data), 500))
+	std::string read;
+	while(1){
+		if (hExt1.serial.available() > 0)
 		{
-			// hLED2.toggle();
-			printf("received data: %s\r\n", received_data);
-			switch (received_data[0])
+			sys.delay(3);
+			if (hExt1.serial.read(received_data, sizeof(received_data), 500))
 			{
-			case 'w':
-				relativeMove(0, 500);
-				break;
-			case 's':
-				relativeMove(0, -500);
-				break;
-			case 'a':
-				relativeMove(-500, 0);
-				break;
-			case 'd':
-				relativeMove(500,0);
-				break;
+				read += received_data;
+				// printf("received data: %s\r\n", received_data);
+				if (read.length() >0) {
+					printf("%s",read.c_str()); 
+
+				}
+				switch (received_data[0])
+				{
+				case 'm':
+					switchElectromagnet();
+					break;
+				return 1;
+				}
 			}
-			return 1;
-		}
-		else
-		{
-			printf("no data received - check connections!\r\n");
-			return 0;
+			else
+			{
+				printf("no data received - check connections!\r\n");
+				return 0;
+			}
 		}
 	}
 }
-
 void hMain()
 {
-	// sys.taskCreate(&testMotors);
-	// sys.taskCreate(&bluetoothReceiveCommand);
-	// sys.taskCreate(&getDistanceAndDetectObstacle);
 	hExt1.serial.init(9600, Parity::None, StopBits::One);
-	hExt1.pin3.setOut();
-	for (;;)
-	{
-		hExt1.pin3.toggle();
-		sys.delay(2000);
-		bluetoothReceiveCommand();
-	}
+	sys.taskCreate(&bluetoothReceiveCommandTask);
+	sys.taskCreate(&getDistanceAndDetectObstacleTask);
+	
 }

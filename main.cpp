@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <DistanceSensor.h>
+#include <math.h>
 
 
 using namespace hModules;
@@ -50,6 +51,90 @@ void relativeMove(int positionX, int positionY)
 	hMot4.setPower(-positionX);
 }
 
+int readPosition(char received_data)
+{
+	char xposition[4];
+	char yposition[4];
+	int j = 0;
+	int k = 0;
+	int l = 0;
+	int x = 0;
+	int y = 0;
+	int z = 0;
+
+	// for(int i=0; received_data[i] == 'n'; i++)
+	// {
+		Serial.printf("received: %s\r\n", received_data);
+	// }
+	for(int i=0; received_data[i] == 'n'; i++)
+	{
+		if(received_data[i] == 'X')
+		{
+			j = i + 1;
+			k = 0;
+			while(received_data[j] != 'Y')
+			{
+				xposition[k] = received_data[j];
+				k++;
+				j++;
+			}
+		}
+		if(received_data[i] == 'Y')
+		{
+			j = i + 1;
+			l = 0;
+			while(received_data[j] != 'n')
+			{
+				yposition[l] = received_data[j];
+				l++;
+				j++;
+			}
+		}
+	}
+	if(xposition[0] == '-')
+	{
+		z = 0;
+		while(k > 0)
+		{
+			x += (int)xposition[k] * pow(10,z);
+			k--;
+			z++;
+		}
+	}else
+	{
+		z = 0;
+		while(k == 0)
+		{
+			x += (int)xposition[k] *  pow(10,z);
+			k--;
+			z++;
+		}
+	}
+
+	if(yposition[0] == '-')
+	{
+		z = 0;
+		while(l > 0)
+		{
+			y += (int)yposition[l] *  pow(10,z);
+			l--;
+			z++;
+		}
+	}else
+	{
+		z = 0;
+		while(l == 0)
+		{
+			y += (int)yposition[l] *  pow(10,z);
+			l--;
+			z++;
+		}
+	}
+	Serial.printf("x =  %d\n", x);
+	Serial.printf("y =  %d\n", y);
+
+ return 1;
+}
 void getDistanceAndDetectObstacleTask()
 {
 	DistanceSensor sensorFront(hSens1.getBaseSens());
@@ -111,15 +196,15 @@ void switchElectromagnet(){
 
 int bluetoothReceiveCommandTask()
 {
-	char received_data[10];
+	char received_data[];
 	while(1){
 		if (hExt1.serial.available() > 0)
 		{
 			if (hExt1.serial.read(received_data, sizeof(received_data), 500))
 			{
 				
-				printf("received data: %s\r\n", received_data);
-				
+				// printf("received data: %s\r\n", received_data);
+				readPosition(received_data);
 				switch (received_data[0])
 				{
 				case 'm':

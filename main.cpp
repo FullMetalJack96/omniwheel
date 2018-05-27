@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <DistanceSensor.h>
-#include <string>
+
 
 using namespace hModules;
 
@@ -111,20 +111,15 @@ void switchElectromagnet(){
 
 int bluetoothReceiveCommandTask()
 {
-	char received_data[20];
-	std::string read;
+	char received_data[10];
 	while(1){
 		if (hExt1.serial.available() > 0)
 		{
-			sys.delay(3);
 			if (hExt1.serial.read(received_data, sizeof(received_data), 500))
 			{
-				read += received_data;
-				// printf("received data: %s\r\n", received_data);
-				if (read.length() >0) {
-					printf("%s",read.c_str()); 
-
-				}
+				
+				printf("received data: %s\r\n", received_data);
+				
 				switch (received_data[0])
 				{
 				case 'm':
@@ -141,6 +136,7 @@ int bluetoothReceiveCommandTask()
 		}
 	}
 }
+
 void hMain()
 {
 	hExt1.serial.init(9600, Parity::None, StopBits::One);

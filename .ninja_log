@@ -1,0 +1,25 @@
+# ninja log v5
+0	32	0	CMakeFiles/printvars	1e6542d33556cf00
+0	50	0	CMakeFiles/printvars	1e6542d33556cf00
+0	35	0	CMakeFiles/printvars	1e6542d33556cf00
+7	531	0	CMakeFiles/myproject.elf.dir/main.cpp.obj	af83259e94175169
+531	1249	0	myproject.elf	fc4255efb794f170
+1249	1368	0	CMakeFiles/myproject.hex	de0b87209c46f786
+1368	279001	0	CMakeFiles/flash_myproject	c6da99eee271c355
+11	2678	0	CMakeFiles/myproject.elf.dir/main.cpp.obj	6066396a1d0ae789
+2679	3540	0	myproject.elf	827de467eb5f53a
+3540	3616	0	CMakeFiles/myproject.hex	de0b87209c46f786
+3617	338560	0	CMakeFiles/flash_myproject	c6da99eee271c355
+5	443	0	CMakeFiles/myproject.elf.dir/main.cpp.obj	af83259e94175169
+444	901	0	myproject.elf	fc4255efb794f170
+901	1021	0	CMakeFiles/myproject.hex	de0b87209c46f786
+1021	310284	0	CMakeFiles/flash_myproject	c6da99eee271c355
+6	149	0	CMakeFiles/myproject.hex	de0b87209c46f786
+149	41097	0	CMakeFiles/flash_myproject	c6da99eee271c355
+4	425	0	CMakeFiles/myproject.elf.dir/main.cpp.obj	af83259e94175169
+426	834	0	myproject.elf	fc4255efb794f170
+834	886	0	CMakeFiles/myproject.hex	de0b87209c46f786
+887	57632	0	CMakeFiles/flash_myproject	c6da99eee271c355
+6	76	0	CMakeFiles/myproject.hex	de0b87209c46f786
+76	43818	0	CMakeFiles/flash_myproject	c6da99eee271c355
+0	43	0	CMakeFiles/printvars	1e6542d33556cf00

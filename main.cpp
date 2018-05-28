@@ -4,7 +4,9 @@
 #include <stddef.h>
 #include <DistanceSensor.h>
 #include <math.h>
-
+#include <string>
+#include <string.h>
+#include <sstream>
 
 using namespace hModules;
 
@@ -29,19 +31,19 @@ void relativeMove(int positionX, int positionY)
 {
 	if (positionX > 0 && obstacleRight)
 	{
-			positionX = 0;
+		positionX = 0;
 	}
 	if (positionX < 0 && obstacleLeft)
 	{
-			positionX = 0;
+		positionX = 0;
 	}
 	if (positionY > 0 && obstacleFront)
 	{
-			positionY = 0;
+		positionY = 0;
 	}
 	if (positionY < 0 && obstacleBack)
 	{
-			positionY = 0;
+		positionY = 0;
 	}
 
 	hMot1.setPower(positionY);
@@ -51,97 +53,13 @@ void relativeMove(int positionX, int positionY)
 	hMot4.setPower(-positionX);
 }
 
-int readPosition(char received_data)
-{
-	char xposition[4];
-	char yposition[4];
-	int j = 0;
-	int k = 0;
-	int l = 0;
-	int x = 0;
-	int y = 0;
-	int z = 0;
-
-	// for(int i=0; received_data[i] == 'n'; i++)
-	// {
-		Serial.printf("received: %s\r\n", received_data);
-	// }
-	for(int i=0; received_data[i] == 'n'; i++)
-	{
-		if(received_data[i] == 'X')
-		{
-			j = i + 1;
-			k = 0;
-			while(received_data[j] != 'Y')
-			{
-				xposition[k] = received_data[j];
-				k++;
-				j++;
-			}
-		}
-		if(received_data[i] == 'Y')
-		{
-			j = i + 1;
-			l = 0;
-			while(received_data[j] != 'n')
-			{
-				yposition[l] = received_data[j];
-				l++;
-				j++;
-			}
-		}
-	}
-	if(xposition[0] == '-')
-	{
-		z = 0;
-		while(k > 0)
-		{
-			x += (int)xposition[k] * pow(10,z);
-			k--;
-			z++;
-		}
-	}else
-	{
-		z = 0;
-		while(k == 0)
-		{
-			x += (int)xposition[k] *  pow(10,z);
-			k--;
-			z++;
-		}
-	}
-
-	if(yposition[0] == '-')
-	{
-		z = 0;
-		while(l > 0)
-		{
-			y += (int)yposition[l] *  pow(10,z);
-			l--;
-			z++;
-		}
-	}else
-	{
-		z = 0;
-		while(l == 0)
-		{
-			y += (int)yposition[l] *  pow(10,z);
-			l--;
-			z++;
-		}
-	}
-	Serial.printf("x =  %d\n", x);
-	Serial.printf("y =  %d\n", y);
-
- return 1;
-}
 void getDistanceAndDetectObstacleTask()
 {
 	DistanceSensor sensorFront(hSens1.getBaseSens());
 	DistanceSensor sensorBack(hSens5.getBaseSens());
 	DistanceSensor sensorLeft(hSens4.getBaseSens());
 	DistanceSensor sensorRight(hSens2.getBaseSens());
-	
+
 	while (1)
 	{
 		hLED1.off();
@@ -149,18 +67,11 @@ void getDistanceAndDetectObstacleTask()
 		int backDist = sensorBack.getDistance();
 		int leftDist = sensorLeft.getDistance();
 		int rightDist = sensorRight.getDistance();
-		
-
-		// Serial.printf("%d\n",frontDist);
-		// Serial.printf("%d\n",rightDist);
-		// Serial.printf("%d\n",backDist);
-		// Serial.printf("%d\n",leftDist);
 		// hExt1.serial.printf("%d %d %d %d\n",frontDist,rightDist,backDist,leftDist);
-
 
 		if (leftDist <= 10 && leftDist >= 0)
 		{
-			
+
 			Serial.printf("OBSTACLE DETECTED: LEFT!\r\n");
 			obstacleLeft = true;
 			hLED1.on();
@@ -183,40 +94,69 @@ void getDistanceAndDetectObstacleTask()
 			obstacleBack = true;
 			hLED1.on();
 		}
-			obstacleLeft = false;
-			obstacleBack = false;
-			obstacleFront = false;
-			obstacleRight = false;
+		obstacleLeft = false;
+		obstacleBack = false;
+		obstacleFront = false;
+		obstacleRight = false;
 	}
 }
 
-void switchElectromagnet(){
+void switchElectromagnet()
+{
 	printf("electromagnet toggled!\r\n");
 }
 
-int bluetoothReceiveCommandTask()
+void bluetoothReceiveCommandTask()
 {
-	char received_data[];
-	while(1){
+	char received_data[10];
+	char position[10];
+	std::string positionString;
+	std::string xDelimiter = "|";
+	std::string yDelimiter = "n";
+	int i = 0;
+	size_t pos = 0;
+	std::string yPositionString;
+	std::string xPositionString;
+	int xPos;
+	int yPos;
+	
+	while (1)
+	{
 		if (hExt1.serial.available() > 0)
 		{
-			if (hExt1.serial.read(received_data, sizeof(received_data), 500))
+			if (hExt1.serial.read(received_data, 1, 500))
 			{
+				position[i] = received_data[0];
+				i++;
+
+				if (received_data[0] == 'n')
+				{
+					i = 0;
+					positionString = position;
+					while ((pos = positionString.find(xDelimiter)) != std::string::npos) {
+						yPositionString = positionString.substr(0, pos);
+						std::istringstream stringStreamY(yPositionString);
+						stringStreamY >> yPos; 
+						printf("X: %d\r\n", yPos);
+						positionString.erase(0, pos + xDelimiter.length());
+					}
+					xPositionString = positionString.substr(0,positionString.find(yDelimiter));
+					std::istringstream stringStreamX(xPositionString);
+					stringStreamX >> xPos; 
+					printf("Y: %d\r\n", xPos);
+				}
 				
-				// printf("received data: %s\r\n", received_data);
-				readPosition(received_data);
+
 				switch (received_data[0])
 				{
 				case 'm':
 					switchElectromagnet();
 					break;
-				return 1;
 				}
 			}
 			else
 			{
 				printf("no data received - check connections!\r\n");
-				return 0;
 			}
 		}
 	}
@@ -227,5 +167,4 @@ void hMain()
 	hExt1.serial.init(9600, Parity::None, StopBits::One);
 	sys.taskCreate(&bluetoothReceiveCommandTask);
 	sys.taskCreate(&getDistanceAndDetectObstacleTask);
-	
 }

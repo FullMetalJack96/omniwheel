@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <DistanceSensor.h>
-#include <math.h>
 #include <string>
 #include <string.h>
 #include <sstream>
@@ -15,20 +14,9 @@ bool obstacleBack = false;
 bool obstacleRight = false;
 bool obstacleLeft = false;
 
-enum Direction
+void relativeMove(int positionY, int positionX)
 {
-	left = 0,
-	right = 1,
-	forward = 2,
-	backward = 3,
-	fRight = 4,
-	fLeft = 5,
-	rRight = 6,
-	rLeft = 7
-};
-
-void relativeMove(int positionX, int positionY)
-{
+	
 	if (positionX > 0 && obstacleRight)
 	{
 		positionX = 0;
@@ -46,23 +34,29 @@ void relativeMove(int positionX, int positionY)
 		positionY = 0;
 	}
 
-	hMot1.setPower(positionY);
-	hMot2.setPower(-positionY);
+	hMot1.setPower(-positionX);
+	hMot2.setPower(positionX);
 
-	hMot3.setPower(positionX);
-	hMot4.setPower(-positionX);
+	hMot3.setPower(positionY);
+	hMot4.setPower(-positionY);
+}
+void resetObstacleValues(){
+		obstacleLeft = false;
+		obstacleBack = false;
+		obstacleFront = false;
+		obstacleRight = false;
+		hLED1.off();
 }
 
 void getDistanceAndDetectObstacleTask()
 {
-	DistanceSensor sensorFront(hSens1.getBaseSens());
-	DistanceSensor sensorBack(hSens5.getBaseSens());
-	DistanceSensor sensorLeft(hSens4.getBaseSens());
-	DistanceSensor sensorRight(hSens2.getBaseSens());
+	DistanceSensor sensorFront(hSens2.getBaseSens());
+	DistanceSensor sensorBack(hSens4.getBaseSens());
+	DistanceSensor sensorLeft(hSens1.getBaseSens());
+	DistanceSensor sensorRight(hSens5.getBaseSens());
 
 	while (1)
 	{
-		hLED1.off();
 		int frontDist = sensorFront.getDistance();
 		int backDist = sensorBack.getDistance();
 		int leftDist = sensorLeft.getDistance();
@@ -71,33 +65,27 @@ void getDistanceAndDetectObstacleTask()
 
 		if (leftDist <= 10 && leftDist >= 0)
 		{
-
 			Serial.printf("OBSTACLE DETECTED: LEFT!\r\n");
 			obstacleLeft = true;
 			hLED1.on();
-		}
-		if (rightDist <= 10 && rightDist >= 0)
+		}else if (rightDist <= 10 && rightDist >= 0)
 		{
 			Serial.printf("OBSTACLE DETECTED: RIGHT!\r\n");
 			obstacleRight = true;
 			hLED1.on();
-		}
-		if (frontDist <= 10 && frontDist >= 0)
+		}else if (frontDist <= 10 && frontDist >= 0)
 		{
 			Serial.printf("OBSTACLE DETECTED: FRONT!\r\n");
 			obstacleFront = true;
 			hLED1.on();
-		}
-		if (backDist <= 10 && backDist >= 0)
+		}else if (backDist <= 10 && backDist >= 0)
 		{
 			Serial.printf("OBSTACLE DETECTED: BACK!\r\n");
 			obstacleBack = true;
 			hLED1.on();
+		}else{
+			resetObstacleValues();
 		}
-		obstacleLeft = false;
-		obstacleBack = false;
-		obstacleFront = false;
-		obstacleRight = false;
 	}
 }
 
@@ -119,7 +107,7 @@ void bluetoothReceiveCommandTask()
 	std::string xPositionString;
 	int xPos;
 	int yPos;
-	
+
 	while (1)
 	{
 		if (hExt1.serial.available() > 0)
@@ -146,6 +134,7 @@ void bluetoothReceiveCommandTask()
 					printf("Y: %d\r\n", xPos);
 				}
 				
+				relativeMove(xPos*10,yPos*10);
 
 				switch (received_data[0])
 				{
@@ -165,6 +154,7 @@ void bluetoothReceiveCommandTask()
 void hMain()
 {
 	hExt1.serial.init(9600, Parity::None, StopBits::One);
-	sys.taskCreate(&bluetoothReceiveCommandTask);
 	sys.taskCreate(&getDistanceAndDetectObstacleTask);
+	sys.taskCreate(&bluetoothReceiveCommandTask);
+	
 }

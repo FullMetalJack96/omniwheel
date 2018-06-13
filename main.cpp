@@ -14,46 +14,45 @@ bool obstacleBack = false;
 bool obstacleRight = false;
 bool obstacleLeft = false;
 
+
 void relativeMove(int positionY, int positionX)
-{
-	
-	if (positionX > 0 && obstacleRight)
+{ 
+
+	if ((positionX > 0 && obstacleRight) || (positionX < 0 && obstacleLeft))
 	{
 		positionX = 0;
 	}
-	if (positionX < 0 && obstacleLeft)
+	else
 	{
-		positionX = 0;
+		hMot1.setPower(-positionX);
+		hMot2.setPower(positionX);
 	}
-	if (positionY > 0 && obstacleFront)
-	{
-		positionY = 0;
-	}
-	if (positionY < 0 && obstacleBack)
+	if ((positionY > 0 && obstacleFront) || (positionY < 0 && obstacleBack))
 	{
 		positionY = 0;
 	}
-
-	hMot1.setPower(-positionX);
-	hMot2.setPower(positionX);
-
-	hMot3.setPower(positionY);
-	hMot4.setPower(-positionY);
+	else
+	{
+		hMot3.setPower(positionY);
+		hMot4.setPower(-positionY);
+	}
 }
-void resetObstacleValues(){
-		obstacleLeft = false;
-		obstacleBack = false;
-		obstacleFront = false;
-		obstacleRight = false;
-		hLED1.off();
+
+void resetObstacleValues()
+{
+	obstacleLeft = false;
+	obstacleBack = false;
+	obstacleFront = false;
+	obstacleRight = false;
+	hLED1.off();
 }
 
 void getDistanceAndDetectObstacleTask()
 {
-	DistanceSensor sensorFront(hSens2.getBaseSens());
+	DistanceSensor sensorFront(hSens5.getBaseSens());
 	DistanceSensor sensorBack(hSens4.getBaseSens());
 	DistanceSensor sensorLeft(hSens1.getBaseSens());
-	DistanceSensor sensorRight(hSens5.getBaseSens());
+	DistanceSensor sensorRight(hSens2.getBaseSens());
 
 	while (1)
 	{
@@ -61,29 +60,34 @@ void getDistanceAndDetectObstacleTask()
 		int backDist = sensorBack.getDistance();
 		int leftDist = sensorLeft.getDistance();
 		int rightDist = sensorRight.getDistance();
-		// hExt1.serial.printf("%d %d %d %d\n",frontDist,rightDist,backDist,leftDist);
+		hExt1.serial.printf("%d %d %d %d\n",frontDist,rightDist,backDist,leftDist);
 
 		if (leftDist <= 10 && leftDist >= 0)
 		{
 			Serial.printf("OBSTACLE DETECTED: LEFT!\r\n");
 			obstacleLeft = true;
 			hLED1.on();
-		}else if (rightDist <= 10 && rightDist >= 0)
+		}
+		else if (rightDist <= 10 && rightDist >= 0)
 		{
 			Serial.printf("OBSTACLE DETECTED: RIGHT!\r\n");
 			obstacleRight = true;
 			hLED1.on();
-		}else if (frontDist <= 10 && frontDist >= 0)
+		}
+		else if (frontDist <= 10 && frontDist >= 0)
 		{
 			Serial.printf("OBSTACLE DETECTED: FRONT!\r\n");
 			obstacleFront = true;
 			hLED1.on();
-		}else if (backDist <= 10 && backDist >= 0)
+		}
+		else if (backDist <= 10 && backDist >= 0)
 		{
 			Serial.printf("OBSTACLE DETECTED: BACK!\r\n");
 			obstacleBack = true;
 			hLED1.on();
-		}else{
+		}
+		else
+		{
 			resetObstacleValues();
 		}
 	}
@@ -91,7 +95,8 @@ void getDistanceAndDetectObstacleTask()
 
 void switchElectromagnet()
 {
-	printf("electromagnet toggled!\r\n");
+	hExt2.pin7.toggle();
+	printf("Electromagnet toggled!\r\n");
 }
 
 void bluetoothReceiveCommandTask()
@@ -121,20 +126,20 @@ void bluetoothReceiveCommandTask()
 				{
 					i = 0;
 					positionString = position;
-					while ((pos = positionString.find(xDelimiter)) != std::string::npos) {
+					while ((pos = positionString.find(xDelimiter)) != std::string::npos)
+					{
 						yPositionString = positionString.substr(0, pos);
 						std::istringstream stringStreamY(yPositionString);
-						stringStreamY >> yPos; 
+						stringStreamY >> yPos;
 						printf("X: %d\r\n", yPos);
 						positionString.erase(0, pos + xDelimiter.length());
 					}
-					xPositionString = positionString.substr(0,positionString.find(yDelimiter));
+					xPositionString = positionString.substr(0, positionString.find(yDelimiter));
 					std::istringstream stringStreamX(xPositionString);
-					stringStreamX >> xPos; 
+					stringStreamX >> xPos;
 					printf("Y: %d\r\n", xPos);
 				}
-				
-				relativeMove(xPos*10,yPos*10);
+				relativeMove(yPos*10,xPos*10);
 
 				switch (received_data[0])
 				{
@@ -153,8 +158,9 @@ void bluetoothReceiveCommandTask()
 
 void hMain()
 {
+
 	hExt1.serial.init(9600, Parity::None, StopBits::One);
+	hExt2.pin7.setOut();
 	sys.taskCreate(&getDistanceAndDetectObstacleTask);
 	sys.taskCreate(&bluetoothReceiveCommandTask);
-	
 }

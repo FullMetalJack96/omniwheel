@@ -14,9 +14,8 @@ bool obstacleBack = false;
 bool obstacleRight = false;
 bool obstacleLeft = false;
 
-
 void relativeMove(int positionY, int positionX)
-{ 
+{
 
 	if ((positionX > 0 && obstacleRight) || (positionX < 0 && obstacleLeft))
 	{
